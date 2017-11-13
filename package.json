@@ -1,0 +1,29 @@
+{
+  "author": {
+    "name": "Nick Mai",
+    "email": "nick.mai@outlook.com"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "mocha": "^4.0.1",
+    "mongoose": "^4.12.4",
+    "query-parser-express": "^1.0.3",
+    "request": "^2.83.0",
+    "should": "^13.1.2",
+    "supertest": "^3.0.0"
+  },
+  "description": "",
+  "devDependencies": {},
+  "keywords": [],
+  "license": "MIT",
+  "main": "server/index.js",
+  "name": "bank",
+  "optionalDependencies": {},
+  "readme": "",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha",
+    "start": "node server/index.js"
+  },
+  "version": "1.0.0"
+}
