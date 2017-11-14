@@ -1,4 +1,4 @@
-#bank api
+# bank api
 
 1. Install dependencies with `npm install`
 2. Requires MongoDB. Start mongod (if it isn't already running)
