@@ -2,44 +2,38 @@
 
 let express = require("express")
 let bodyParser = require('body-parser')
-let queryParser = require('query-parser-express');
 let Account = require('../models/account')
 
 let app = express()
 let router = express.Router()
 
 app.use(bodyParser.json())
-app.use(queryParser())
 
 router.post('/open', (req, res) => {
   Account.createAccount({
       balance: req.body.balance ? req.body.balance : 0,
       owner_name: req.body.owner_name ? req.body.owner_name : void(0)
-    }, (err, acc) => {
-      if (err)
-        return res.status(400).send({ error: err })
+    }).then( acc => {
       res.send({
         id: acc._id,
         balance: acc.balance,
         owner_name: acc.owner_name
       })
     })
+    .catch( err => res.status(400).send({ error: err }) )
 })
 
 router.delete('/close', (req, res) => {
-  Account.closeAccount(req.body.id, (err, data) => {
-    if (err)
-      return res.status(400)
-        .send({ error: err })
-      
-    res.send({
-      id: req.params.id
+  Account.closeAccount(req.body.id)
+    .then( data => {
+      res.send({
+        id: req.params.id
+      })
     })
-  })
+    .catch( err => res.status(400).send({ error: err }) )
 })
 
 router.get('/account', (req, res) => {
-  console.log('queryid: ', req.query.id)
   Account.findOne({ _id: req.query.id }, (err, accountDoc) => {
     if (err)
       return res.status(400)

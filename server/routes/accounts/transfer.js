@@ -3,6 +3,7 @@
 var express = require("express")
 var bodyParser = require('body-parser')
 var mongoose = require('mongoose')
+var request = require('request-promise-native')
 var Account = require('../../models/account')
 
 var app = express()
@@ -16,60 +17,55 @@ module.exports = router.post('', (req, res) => {
   let payeeId = req.body.payee_id
   let transferAmount = req.body.transfer_amount
 
-  console.log('amount: ', transferAmount)
-
-  let accounts = Account.find({ 
+  Account.find({ 
     "$or": [ 
       { _id: payerId },
       { _id: payeeId }
     ]
-  }, (err, data) => {
-    let payerAccount, payeeAccount
-
-    console.log(data[0]._id, payerId)
-
-    if (data[0]._id == payerId) {
-      payerAccount = data[0]
-      payeeAccount = data[1]
-    } else {
-      payerAccount = data[1]
-      payeeAccount = data[0]
-    }
+  }).then( async function(data) {
+    let payerAccount = data[data[0]._id == payerId ? 0 : 1]
+    let payeeAccount = data[data[0]._id != payerId ? 0 : 1]
 
     if (!payerAccount || !payeeAccount) {
       return res.status(404)
         .send('{ error: "could not find one or both accounts" }')
     }
 
-    console.log("owner name", payerAccount, payeeAccount)
-
-    let fee = payerAccount.owner_name == payeeAccount.owner_name ? 0 : 100
-    console.log('calc fee', fee)
+    let isSameOwner = Boolean(payerAccount.owner_name == payeeAccount.owner_name)
+    let fee = isSameOwner ? 0 : 100
     payerAccount.balance -= transferAmount + fee
     payeeAccount.balance += transferAmount
 
-    console.log(payerAccount.balance, "< --- is it too low!!")
+    let transferApproved = isSameOwner ? true : await fetchApproval()
 
-    if (payerAccount.balance < 0) {
-      return res.status(403)
-        .send('{ error: "insufficient funds" }')
-    }
+    if (!transferApproved)
+      return res.status(403).send('{ error: "external transfer denied" }')
+    else if (payerAccount.balance < 0)
+      return res.status(403).send('{ error: "insufficient funds" }')
 
-    try {
-      console.log('trying')
-      Account.collection.bulkWrite([
-        { updateOne : { "filter" : { _id: payerId }, 'update': payerAccount.toObject() } },
-        { updateOne : { "filter" : { _id: payeeId }, 'update': payeeAccount.toObject() } }
-      ], (err, success) => {
-        return res.status(200).send({
-          payer_balance: payerAccount.balance,
-          payee_balance: payeeAccount.balance
-        })
+    Account.collection.bulkWrite([
+      { updateOne : { "filter" : { _id: payerId }, 'update': payerAccount.toObject() } },
+      { updateOne : { "filter" : { _id: payeeId }, 'update': payeeAccount.toObject() } }
+    ]).then( data => {
+      return res.status(200).send({
+        payer_balance: payerAccount.balance,
+        payee_balance: payeeAccount.balance
       })
-    } catch(e) {
-      console.log('catching', e)
+    }).catch( error => {
       return res.status(500)
         .send('{ error: "transfer bulk update operation failed" }')
-    }
+    })
+  }).catch( error => {
+    return res.status(500)
+      .send(error)
   })
 })
+
+function fetchApproval() {
+  return request('http://handy.travel/test/success.json')
+    .then( res =>
+      new Promise( resolve =>
+        resolve(Boolean(JSON.parse(res).status == 'success'))
+      )
+    )
+}
