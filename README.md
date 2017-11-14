@@ -14,3 +14,6 @@ API endpoints:
   - `/api/transfers/submit_transfer` (POST)
 
 Runs on port 3000 by default.
+
+### TODO:
+Unit tests... I have written integration tests, but while the coverage is OK for a codebase of this scale (tiny!) I would be worried about continuing development without adding unit tests. Luckily, because the code is small and the functionality so basic (the ratio of functions to endpoints is quite low), the integration test suite will catch the majority of basic errors. I have set up the route handlers to be unit testable, but I could split some of the functions into separate, more thoroughly testable chunks of code.
