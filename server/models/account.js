@@ -1,6 +1,6 @@
 'use strict'
 
-let mongoose = require("mongoose")
+let mongoose = require('mongoose')
 
 let account_schema = mongoose.Schema({
   balance: {
@@ -13,7 +13,7 @@ let account_schema = mongoose.Schema({
   }
 })
 
-let account = module.exports = mongoose.model("account", account_schema)
+let account = module.exports = mongoose.model('account', account_schema)
 
 module.exports.createAccount = (accountInfo) => {
   return account.create({

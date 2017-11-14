@@ -1,11 +1,13 @@
 'use strict'
 
 let mongoose = require('mongoose')
-let request = require('request-promise-native')
 let Account = require('../../models/account')
+
+let fetchApproval = require('./fetch-approval.js')
 
 let db = mongoose.connection
 
+// probably more of this could be separated into smaller functions
 module.exports.transfer = (req, res) => {
   let payerId = req.body.payer_id
   let payeeId = req.body.payee_id
@@ -53,13 +55,4 @@ module.exports.transfer = (req, res) => {
     return res.status(500)
       .send(error)
   })
-}
-
-function fetchApproval() {
-  return request('http://handy.travel/test/success.json')
-    .then( res =>
-      new Promise( resolve =>
-        resolve(Boolean(JSON.parse(res).status == 'success'))
-      )
-    )
 }
