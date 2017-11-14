@@ -73,13 +73,13 @@ describe('GET, PUT basic account access', () => {
 
   describe('GET account balance request: ', () => {  
     it('should return balance in correct format',(done) => {
-      server.get('/api/accounts/account')
+      server.get('/api/accounts/account_status')
         .query({ id: currentAccountID })
         .send()
         .expect('Content-type',/json/)
         .expect(200)
         .end((err,res) => {
-          res.body.balance.should.be.equal(accountTemplate.balance)
+          res.body.should.have.property('balance').which.equals(accountTemplate.balance)
           done()
         })
     })
@@ -225,7 +225,7 @@ describe('POST account transfer: ', () => {
     it('given sufficient funds, should return success and correct new balance',done => {
       let transferAmount = 50
 
-      server.post('/api/accounts/transfer')
+      server.post('/api/transfers/submit_transfer')
         .send({ 
           payer_id: accountJohn1.id,
           payee_id: accountJohn2.id,
@@ -245,7 +245,7 @@ describe('POST account transfer: ', () => {
     it('given insufficient funds, should return error', done => {
       let transferAmount = 100
 
-      server.post('/api/accounts/transfer')
+      server.post('/api/transfers/submit_transfer')
         .send({ 
           payer_id: accountJohn1.id,
           payee_id: accountJohn2.id,
@@ -264,7 +264,7 @@ describe('POST account transfer: ', () => {
     it('given sufficient funds, should return success and correct new balance',done => {
       let transferAmount = 50
 
-      server.post('/api/accounts/transfer')
+      server.post('/api/transfers/submit_transfer')
         .send({ 
           payer_id: accountMary.id,
           payee_id: accountJohn2.id,
@@ -283,7 +283,7 @@ describe('POST account transfer: ', () => {
     it('given insufficient funds, should error', done => {
       let transferAmount = 10
 
-      server.post('/api/accounts/transfer')
+      server.post('/api/transfers/submit_transfer')
         .send({ 
           payer_id: accountBob.id,
           payee_id: accountJohn1.id,

@@ -1,24 +1,18 @@
 'use strict'
 
-var express = require("express")
-var bodyParser = require('body-parser')
-var mongoose = require('mongoose')
-var request = require('request-promise-native')
-var Account = require('../../models/account')
+let mongoose = require('mongoose')
+let request = require('request-promise-native')
+let Account = require('../../models/account')
 
-var app = express()
-var router = express.Router()
-var db = mongoose.connection
+let db = mongoose.connection
 
-app.use(bodyParser.json())
-
-module.exports = router.post('', (req, res) => {
+module.exports.transfer = (req, res) => {
   let payerId = req.body.payer_id
   let payeeId = req.body.payee_id
   let transferAmount = req.body.transfer_amount
 
   Account.find({ 
-    "$or": [ 
+    '$or': [ 
       { _id: payerId },
       { _id: payeeId }
     ]
@@ -44,8 +38,8 @@ module.exports = router.post('', (req, res) => {
       return res.status(403).send('{ error: "insufficient funds" }')
 
     Account.collection.bulkWrite([
-      { updateOne : { "filter" : { _id: payerId }, 'update': payerAccount.toObject() } },
-      { updateOne : { "filter" : { _id: payeeId }, 'update': payeeAccount.toObject() } }
+      { updateOne : { 'filter' : { _id: payerId }, 'update': payerAccount.toObject() } },
+      { updateOne : { 'filter' : { _id: payeeId }, 'update': payeeAccount.toObject() } }
     ]).then( data => {
       return res.status(200).send({
         payer_balance: payerAccount.balance,
@@ -59,7 +53,7 @@ module.exports = router.post('', (req, res) => {
     return res.status(500)
       .send(error)
   })
-})
+}
 
 function fetchApproval() {
   return request('http://handy.travel/test/success.json')
